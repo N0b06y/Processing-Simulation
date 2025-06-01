@@ -3,14 +3,14 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 open class Vector(
-    var x: Double,
-    var y: Double
+    var x: Float,
+    var y: Float
 ) {
 
-    fun angle(): Double {
+    fun angle(): Float {
         return atan2(
-            y.toDouble(),
-            x.toDouble()
+            y,
+            x
         )
     }
 
@@ -19,20 +19,20 @@ open class Vector(
         var diff = angle1 - angle2
 
         while (diff < -2 * Math.PI) {
-            diff += 2 * java.lang.Math.PI
+            diff += 2 * Math.PI
         }
         while (diff > 2 * Math.PI) {
-            diff -= 2 * java.lang.Math.PI
+            diff -= 2 * Math.PI
         }
         return diff
     }
 
-    fun getLength(): Double {
-        return sqrt(x.toDouble() * x + y.toDouble() * y)
+    fun getLength(): Float {
+        return sqrt(x.pow(2) + y.pow(2))
     }
 
-    fun length(): Double {
-        return sqrt(x.pow(2.0) + y.pow(2.0))
+    fun length(): Float {
+        return sqrt(x.pow(2) + y.pow(2))
     }
 
     fun normalize(): Vector {
@@ -71,23 +71,14 @@ open class Vector(
         y -= direction.y
     }
 
-
-    operator fun times(scalar: Double): Vector {
-        return Vector(x * scalar, y * scalar)
-    }
-
     operator fun times(scalar: Float): Vector {
         return Vector(x * scalar, y * scalar)
     }
 
-    operator fun timesAssign(scalar: Double) {
-        this.x *= scalar
-        this.y *= scalar
-    }
-
-    operator fun div(scalar: Double): Vector {
-        return Vector(x / scalar, y / scalar)
-    }
+//    operator fun timesAssign(scalar: Float) {
+//        this.x *= scalar
+//        this.y *= scalar
+//    }
 
     operator fun div(scalar: Float): Vector {
         return Vector(x / scalar, y / scalar)

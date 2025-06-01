@@ -1,17 +1,26 @@
-import Settings.Settings
 import processing.core.PApplet
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class PointMass(
     private val mass: Float,        // kg
-    private var position: Vector,   // m
-    private var velocity: Vector    // m/s
+    var position: Vector,   // m
+    var velocity: Vector    // m/s
     ) {
 
-    private var yLocked = true
+    private var xLocked = true
 
-    fun update(dt: Float) {
-        position.x += velocity.x * dt
-        if(!yLocked) position.y += velocity.y * dt
+    fun updatePosition(dtMs: Float) {
+        val dt: Float = dtMs / 1000
+
+
+//        println("dt[s]: $dt")
+//        println("delta p: ${velocity.x * dt} ${velocity.y}")
+//        println("position: ${position.x} ${position.y}")
+//        println("expected position: ${position.x + velocity.x * dt} ${position.y + velocity.y * dt}")
+        if(!this.xLocked)
+            position.x += velocity.x * dt
+        position.y += velocity.y * dt
     }
 
     fun position(): Vector {
@@ -21,8 +30,8 @@ class PointMass(
     /**
      * @param force Newton
      */
-    fun applyForce(force: Vector) {
-        velocity += (force / mass)
+    fun applyForce(force: Vector, dtMs: Int) {
+        this.velocity += (force / this.mass) * dtMs.toFloat() / 1000f
     }
 
     /**
@@ -32,8 +41,8 @@ class PointMass(
         velocity *= (1-factor)
     }
 
-    fun lockY(){ yLocked = true }
-    fun unlockY(){ yLocked = false }
+    fun lockX(){ xLocked = true }
+    fun unlockX(){ xLocked = false }
     /**
      * Decrease velocity by constant acceleration
      */
@@ -43,14 +52,21 @@ class PointMass(
             || (velocity - constant).normalize().y == velocity.normalize().y )
             velocity -= constant
         else
-            velocity = Vector(0.0, 0.0)
+            velocity = Vector(0f, 0f)
+    }
+
+    fun distance(other: PointMass): Float {
+        return sqrt(
+            (this.position.x - other.position.x).pow(2)
+            + (this.position.y - other.position.y).pow(2)
+        )
     }
 
     fun draw(scope: PApplet) {
         scope.ellipse(
-            (position.x * Settings.STRECKUNG_X).toFloat(),
-            (-position.y * Settings.STRECKUNG_Y).toFloat() + Settings.WINDOW_HEIGHT,
-            Settings.DEFAULT_RADIUS, Settings.DEFAULT_RADIUS,
+            position.x.toFloat(),
+            -position.y.toFloat() + Constants.WINDOW_HEIGHT,
+            Constants.DEFAULT_RADIUS, Constants.DEFAULT_RADIUS,
         )
     }
 }
