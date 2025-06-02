@@ -12,12 +12,6 @@ class PointMass(
 
     fun updatePosition(dtMs: Float) {
         val dt: Float = dtMs / 1000
-
-
-//        println("dt[s]: $dt")
-//        println("delta p: ${velocity.x * dt} ${velocity.y}")
-//        println("position: ${position.x} ${position.y}")
-//        println("expected position: ${position.x + velocity.x * dt} ${position.y + velocity.y * dt}")
         if(!this.xLocked)
             position.x += velocity.x * dt
         position.y += velocity.y * dt
@@ -31,7 +25,10 @@ class PointMass(
      * @param force Newton
      */
     fun applyForce(force: Vector, dtMs: Int) {
-        this.velocity += (force / this.mass) * dtMs.toFloat() / 1000f
+        val acceleration = force / this.mass
+        val deltaVelocity = acceleration * dtMs.toFloat() / 1000f
+        val newVelocity = this.velocity + deltaVelocity
+        this.velocity = newVelocity
     }
 
     /**
