@@ -52,56 +52,31 @@ class Spring(
      * 4. Return the force vector as the product of the direction and the force magnitude.
      */
     private fun getForce(fromIndex: Int, toIndex: Int): Vector {
-        val distance = points[fromIndex].distance(points[toIndex])
+        val distance: Vector = points[toIndex].position - points[fromIndex].position
         // Calculate the amount of the force to apply
-        val force = (distance - this.length).absoluteValue * springConstant
+        val force: Vector = (distance - this.length) * springConstant
 
-        // Calculate the direction of the force
-        val dir = (points[toIndex].position() - points[fromIndex].position()) /
-                (points[toIndex].position() - points[fromIndex].position()).length()
-
-        return dir * force
+        return force
     }
 
     private fun getDistance(): Double {
         return points[0].distance(points[1])
     }
-
     fun deltaS(): Double {
         return (this.getDistance() - this.length).absoluteValue
     }
 
-    /**
-     * Updates the velocities of all points in the spring system based on the forces exerted by neighboring points.
-     *
-     * For each point in the `points` list, this function calculates and applies the spring force from its adjacent points
-     * (previous and next, if they exist). The force is computed using the `getForce` method, and then applied to the point
-     * using its `applyForce` method. The time step `dtMs` is used to scale the velocity update.
-     *
-     * The update process is as follows:
-     * - For each point:
-     *   - If it is not the last point, apply the force from the next point.
-     *   - If it is not the first point, apply the force from the previous point.
-     *   - The magnitude of the force applied from the previous point is printed for debugging.
-     *
-     * @param dtMs The time step in milliseconds over which to update the velocities.
-     */
-    fun updatePointVelocities(dtMs: Double) {
-        for (i in points.indices) {
-
-            // apply the force to the following point
-            if(i != points.lastIndex) {
-                points[i].applyForce(
-                    this.getForce(i, i + 1), dtMs
-                )
-            }
-            // apply the force to the previous point
-            if(i != 0) {
-                points[i].applyForce(
-                    this.getForce(i, i - 1), dtMs
-                )
-//                print("Force: ${this.getForce(i, i - 1).length()}\n")
-            }
+    fun updateVelocities(dtMs: Double) {
+        for (point in points) {
+            point.updateSpeed(point.force0, dtMs)
         }
+    }
+
+    fun updateForce0() {
+
+        // begin force
+        val force = this.getForce(0, 1)
+        this.points.first().force0 += force
+        this.points.last().force0  -= force
     }
 }

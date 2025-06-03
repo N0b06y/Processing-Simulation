@@ -48,7 +48,10 @@ open class Vector(
     }
 
     operator fun minus(gegFSum: Vector): Vector {
-        return Vector(x - gegFSum.x, y - gegFSum.y)
+        return Vector(
+            x - gegFSum.x,
+            y - gegFSum.y
+        )
     }
 
     /**
@@ -58,7 +61,7 @@ open class Vector(
     operator fun minus(k: Double): Vector {
         val newLen = this.length() - k
 
-        val normalized = this / newLen
+        val normalized = this / this.length()
         // Reset the length
         val newX = normalized.x * newLen
         val newY = normalized.y * newLen
@@ -66,13 +69,17 @@ open class Vector(
         return Vector(newX, newY)
     }
 
-    operator fun minusAssign(direction: Vector) {
-        x -= direction.x
-        y -= direction.y
+    operator fun unaryMinus(): Vector {
+        return Vector(-x, -y)
     }
 
+//    operator fun minusAssign(direction: Vector) {
+//        x -= direction.x
+//        y -= direction.y
+//    }
+
     operator fun times(scalar: Double): Vector {
-        return Vector(x * scalar, y * scalar)
+        return Vector(this.x * scalar, this.y * scalar)
     }
 
 //    operator fun timesAssign(scalar: Double) {

@@ -1,3 +1,4 @@
+import Configuration.DAMPING_COEFFICIENT
 import processing.core.PApplet
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -5,7 +6,8 @@ import kotlin.math.sqrt
 class PointMass(
     val mass: Double,        // kg
     var position: Vector,   // m
-    var velocity: Vector    // m/s
+    var velocity: Vector,    // m/s
+    var force0: Vector,         // calculated with values from the previous step
     ) {
 
     private var xLocked = true
@@ -14,43 +16,15 @@ class PointMass(
         val dt: Double = dtMs / 1000
         if(!this.xLocked)
             position.x += velocity.x * dt
-        position.y += velocity.y * dt
-    }
 
-    fun position(): Vector {
-        return position
+        this.position.y += this.velocity.y * dt + .5 * this.force0.y /this.mass * dt.pow(2)
     }
 
     /**
-     * @param force Newton
+     * @param forceOld Newton
      */
-    fun applyForce(force: Vector, dtMs: Double) {
-        val acceleration = force / this.mass
-        val deltaVelocity = acceleration * dtMs / 1000.0
-        val newVelocity = this.velocity + deltaVelocity
-        newVelocity.x = .0
-        this.velocity = newVelocity
-    }
-
-    /**
-     * Decrease velocity by factor
-     */
-    fun applyFrictionFactor(factor: Double) {
-        velocity *= (1-factor)
-    }
-
-    fun lockX(){ xLocked = true }
-    fun unlockX(){ xLocked = false }
-    /**
-     * Decrease velocity by constant acceleration
-     */
-    fun applyFrictionKonstant(constant: Double) {
-
-        if( (velocity - constant).normalize().x == velocity.normalize().x
-            || (velocity - constant).normalize().y == velocity.normalize().y )
-            velocity -= constant
-        else
-            velocity = Vector(0.0, 0.0)
+    fun updateSpeed(forceOld: Vector, dtMs: Double) {
+        this.velocity.y += forceOld.y / this.mass * dtMs/1000.0
     }
 
     fun distance(other: PointMass): Double {
@@ -66,5 +40,13 @@ class PointMass(
             -position.y.toFloat() + Constants.WINDOW_HEIGHT,
             Constants.DEFAULT_RADIUS, Constants.DEFAULT_RADIUS,
         )
+    }
+
+    fun resetForce() {
+        this.force0 = Vector(0.0, 0.0)
+    }
+
+    fun applyDampingForce() {
+        this.force0 += this.velocity * (-DAMPING_COEFFICIENT)
     }
 }

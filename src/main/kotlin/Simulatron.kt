@@ -1,5 +1,8 @@
+import Configuration.ADD_MASS_NUM
 import Configuration.DRAW_STEP
+import Configuration.PERIOD_TIME
 import Configuration.SIM_STEP
+import Configuration.STIMULATION_PERIOD_NUM
 import processing.core.PApplet
 import kotlin.math.pow
 
@@ -35,12 +38,13 @@ class Simulatron : PApplet() {
             (Constants.WINDOW_WIDTH - Constants.FIRST_POINT_X).toDouble() / Configuration.POINT_MASS_NUM
 
         // create point masses
-        for (i in 1..Configuration.POINT_MASS_NUM) {
+        for (i in 1..Configuration.POINT_MASS_NUM + ADD_MASS_NUM) {
             this.pointMasses.add(
                 PointMass(
                     Configuration.MASS,
                     Vector(Constants.FIRST_POINT_X + defaultDistance * i, Constants.DEFAULT_Y),
-                    Vector(0.0, 0.0)
+                    Vector(0.0, 0.0),
+                    Vector(0.0, 0.0),
                 )
             )
         }
@@ -113,7 +117,7 @@ class Simulatron : PApplet() {
                     100 * this.sinusGenerator.sinus(SIM_STEP) + Constants.DEFAULT_Y
 
                 // terminate
-                if (sinusGenerator.sinus(0.0) <= 0.0) {
+                if (sinusGenerator.timeMs/1000 >= STIMULATION_PERIOD_NUM * PERIOD_TIME) {
                     this.stimulateFirstFlag = false
                     this.pointMasses.first().velocity.y = 0.0
 
@@ -137,9 +141,15 @@ class Simulatron : PApplet() {
             // start spring timer
             this.springTimer = millis()
 
-            for (spring in springs) {
-                spring.updatePointVelocities(simTime)
-            }
+            // velocity verlet
+            for (point in pointMasses)
+                point.resetForce()
+
+            for (spring in springs)
+                spring.updateForce0()
+
+            for (point in pointMasses)
+                point.applyDampingForce()
 
             for (pointMass in pointMasses) {
                 // only interact if the point is not locked
@@ -148,6 +158,11 @@ class Simulatron : PApplet() {
                 ) {
                     pointMass.updatePosition(simTime)
                 }
+            }
+
+            // update last because position needs to be calculated with old speed and acceleration
+            for (spring in springs) {
+                spring.updateVelocities(simTime)
             }
         }
 
