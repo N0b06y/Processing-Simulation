@@ -7,7 +7,7 @@ class PointMass(
     val mass: Double,        // kg
     var position: Vector,   // m
     var velocity: Vector,    // m/s
-    var force0: Vector,         // calculated with values from the previous step
+    var force: Vector,         // calculated with values from the previous step
     ) {
 
     private var xLocked = true
@@ -17,14 +17,18 @@ class PointMass(
         if(!this.xLocked)
             position.x += velocity.x * dt
 
-        this.position.y += this.velocity.y * dt + .5 * this.force0.y /this.mass * dt.pow(2)
+        val acceleration: Vector = this.force / this.mass
+
+        this.position.y += this.velocity.y * dt + .5 * acceleration * dt.pow(2)
     }
 
     /**
      * @param forceOld Newton
      */
-    fun updateSpeed(forceOld: Vector, dtMs: Double) {
-        this.velocity.y += forceOld.y / this.mass * dtMs/1000.0
+    fun updateSpeed(force: Vector, dtMs: Double) {
+        val acceleration = force / this.mass
+        val newVelocity = this.velocity + acceleration * dtMs/1000.0
+        this.velocity = newVelocity
     }
 
     fun distance(other: PointMass): Double {
@@ -43,10 +47,10 @@ class PointMass(
     }
 
     fun resetForce() {
-        this.force0 = Vector(0.0, 0.0)
+        this.force = Vector(0.0, 0.0)
     }
 
     fun applyDampingForce() {
-        this.force0 += this.velocity * (-DAMPING_COEFFICIENT)
+        this.force += this.velocity * (-DAMPING_COEFFICIENT)
     }
 }

@@ -40,8 +40,8 @@ class Spring(
      * between the current distance and the spring's rest length, scaled by the spring constant.
      * The direction of the force is from `fromIndex` to `toIndex`.
      *
-     * @param fromIndex The index of the first point in the `points` list.
-     * @param toIndex The index of the second point in the `points` list.
+     * @param p0Index The index of the first point in the `points` list.
+     * @param p1Index The index of the second point in the `points` list.
      * @return The force vector to be applied from `fromIndex` towards `toIndex`.
      *
      * The calculation steps are:
@@ -51,10 +51,11 @@ class Spring(
      * 3. Determine the direction of the force as a unit vector from `fromIndex` to `toIndex`.
      * 4. Return the force vector as the product of the direction and the force magnitude.
      */
-    private fun getForce(fromIndex: Int, toIndex: Int): Vector {
-        val distance: Vector = points[toIndex].position - points[fromIndex].position
+    private fun getForce(p0Index: Int, p1Index: Int): Vector {
+        val distance: Vector = points[p1Index].position - points[p0Index].position
+        val delta: Vector = distance - this.length
         // Calculate the amount of the force to apply
-        val force: Vector = (distance - this.length) * springConstant
+        val force: Vector = delta * springConstant
 
         return force
     }
@@ -68,15 +69,15 @@ class Spring(
 
     fun updateVelocities(dtMs: Double) {
         for (point in points) {
-            point.updateSpeed(point.force0, dtMs)
+            point.updateSpeed(point.force, dtMs)
         }
     }
 
-    fun updateForce0() {
+    fun updateForce() {
 
         // begin force
         val force = this.getForce(0, 1)
-        this.points.first().force0 += force
-        this.points.last().force0  -= force
+        this.points.first().force += force
+        this.points.last().force  -= force
     }
 }

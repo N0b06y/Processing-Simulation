@@ -146,7 +146,7 @@ class Simulatron : PApplet() {
                 point.resetForce()
 
             for (spring in springs)
-                spring.updateForce0()
+                spring.updateForce()
 
             for (point in pointMasses)
                 point.applyDampingForce()
