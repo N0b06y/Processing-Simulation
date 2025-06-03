@@ -10,6 +10,6 @@ object Constants {
     const val   DEFAULT_RADIUS          = 10f
 
     // positions
-    const val   FIRST_POINT_X: Float   = 100f
-    const val   DEFAULT_Y: Float       = 400f
+    const val   FIRST_POINT_X: Double   = 100.0
+    const val   DEFAULT_Y: Double       = 400.0
 }

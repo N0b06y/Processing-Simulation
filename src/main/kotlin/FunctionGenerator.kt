@@ -7,12 +7,12 @@ import kotlin.math.sin
  */
 
 class SinusGenerator(
-    private val frequency: Float,
-    var timeMs: Int = 0
+    private val frequency: Double,
+    var timeMs: Double = 0.0
 ) {
-    fun sinus(dtMs: Int): Float {
+    fun sinus(dtMs: Double): Double {
         this.timeMs += dtMs
-        return sin((2 * PI.toFloat() * this.frequency) * this.timeMs / 1000f)
+        return sin((2 * PI * this.frequency) * this.timeMs / 1000f)
     }
 
     fun cosinus(dtMs: Int): Double {

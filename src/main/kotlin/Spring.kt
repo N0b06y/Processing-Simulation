@@ -24,10 +24,10 @@ import kotlin.math.absoluteValue
  * - The internal [getForce] method computes the force vector between the two points.
  */
 class Spring(
-    private val length: Float,          // s_0
+    private val length: Double,          // s_0
     point0: PointMass,
     point1: PointMass,
-    private val springConstant: Float,  // D
+    val springConstant: Double,  // D
 ) {
     // points the spring is connected to
     private val points: ArrayList<PointMass> = arrayListOf(point0, point1)
@@ -63,6 +63,14 @@ class Spring(
         return dir * force
     }
 
+    private fun getDistance(): Double {
+        return points[0].distance(points[1])
+    }
+
+    fun deltaS(): Double {
+        return (this.getDistance() - this.length).absoluteValue
+    }
+
     /**
      * Updates the velocities of all points in the spring system based on the forces exerted by neighboring points.
      *
@@ -78,7 +86,7 @@ class Spring(
      *
      * @param dtMs The time step in milliseconds over which to update the velocities.
      */
-    fun updatePointVelocities(dtMs: Int) {
+    fun updatePointVelocities(dtMs: Double) {
         for (i in points.indices) {
 
             // apply the force to the following point

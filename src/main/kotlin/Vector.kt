@@ -3,11 +3,11 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 open class Vector(
-    var x: Float,
-    var y: Float
+    var x: Double,
+    var y: Double
 ) {
 
-    fun angle(): Float {
+    fun angle(): Double {
         return atan2(
             y,
             x
@@ -27,12 +27,12 @@ open class Vector(
         return diff
     }
 
-    fun getLength(): Float {
-        return sqrt(x.pow(2) + y.pow(2))
+    fun getLength(): Double {
+        return sqrt(x.pow(2.0) + y.pow(2.0))
     }
 
-    fun length(): Float {
-        return sqrt(x.pow(2) + y.pow(2))
+    fun length(): Double {
+        return sqrt(x.pow(2.0) + y.pow(2.0))
     }
 
     fun normalize(): Vector {
@@ -55,7 +55,7 @@ open class Vector(
      * Decrease the length by k
      * @return new Direction
      */
-    operator fun minus(k: Float): Vector {
+    operator fun minus(k: Double): Vector {
         val newLen = this.length() - k
 
         val normalized = this / newLen
@@ -71,16 +71,16 @@ open class Vector(
         y -= direction.y
     }
 
-    operator fun times(scalar: Float): Vector {
+    operator fun times(scalar: Double): Vector {
         return Vector(x * scalar, y * scalar)
     }
 
-//    operator fun timesAssign(scalar: Float) {
+//    operator fun timesAssign(scalar: Double) {
 //        this.x *= scalar
 //        this.y *= scalar
 //    }
 
-    operator fun div(scalar: Float): Vector {
+    operator fun div(scalar: Double): Vector {
         return Vector(x / scalar, y / scalar)
     }
 }

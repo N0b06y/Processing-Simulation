@@ -1,5 +1,7 @@
+import Configuration.DRAW_STEP
+import Configuration.SIM_STEP
 import processing.core.PApplet
-import java.io.ObjectInputFilter.Config
+import kotlin.math.pow
 
 
 class Simulatron : PApplet() {
@@ -14,10 +16,10 @@ class Simulatron : PApplet() {
     private val pointMasses: ArrayList<PointMass> = ArrayList()
     private val springs: ArrayList<Spring> = ArrayList()
 
-    private val stimulateFirstButton: Button = Button(Vector(100f, 50f), Vector(20f, 100f), "stimulate\nfirst")
-    private val lockUpMiddleButton: Button = Button(Vector(100f, 50f), Vector(130f, 100f), "stimulate\nmiddle")
-    private val lockFirstPointButton: Button = Button(Vector(100f, 50f), Vector(240f, 100f), "lock\nfirst")
-    private val lockFinalPointButton: Button = Button(Vector(100f, 50f), Vector(350f, 100f), "lock\nlast")
+    private val stimulateFirstButton: Button = Button(Vector(100.0, 50.0), Vector(20.0, 100.0), "stimulate\nfirst")
+    private val lockUpMiddleButton: Button = Button(Vector(100.0, 50.0), Vector(130.0, 100.0), "stimulate\nmiddle")
+    private val lockFirstPointButton: Button = Button(Vector(100.0, 50.0), Vector(240.0, 100.0), "lock\nfirst")
+    private val lockFinalPointButton: Button = Button(Vector(100.0, 50.0), Vector(350.0, 100.0), "lock\nlast")
 
     private var isFinalPointLocked: Boolean = false
     private var isFirstPointLocked: Boolean = false
@@ -29,8 +31,8 @@ class Simulatron : PApplet() {
     private val sinusGenerator = SinusGenerator(Configuration.STIMULATION_FREQUENCY)
 
     init {
-        val defaultDistance: Float =
-            (Constants.WINDOW_WIDTH - Constants.FIRST_POINT_X).toFloat() / Configuration.POINT_MASS_NUM
+        val defaultDistance: Double =
+            (Constants.WINDOW_WIDTH - Constants.FIRST_POINT_X).toDouble() / Configuration.POINT_MASS_NUM
 
         // create point masses
         for (i in 1..Configuration.POINT_MASS_NUM) {
@@ -38,7 +40,7 @@ class Simulatron : PApplet() {
                 PointMass(
                     Configuration.MASS,
                     Vector(Constants.FIRST_POINT_X + defaultDistance * i, Constants.DEFAULT_Y),
-                    Vector(0f, 0f)
+                    Vector(0.0, 0.0)
                 )
             )
         }
@@ -80,67 +82,85 @@ class Simulatron : PApplet() {
     var buttonTimer = 0
     var fullTimer = 0
 
+    var energy = 0.0
+
     override fun draw() {
-        fullTimer = millis()
+        val preCalculationNum = (DRAW_STEP / SIM_STEP).toInt()
+//        println("pre calc num: $preCalculationNum")
+
+        val simTime = if (lockUpMiddleFlag)
+            50.0
+        else
+            SIM_STEP * Configuration.TIME_FACTOR
+
+
+        // calc not shown steps
+        for (i in 0..preCalculationNum) {
+            fullTimer = millis()
+
+
+            //start stim timer
+            stimTimer = millis()
+
+            runtime = millis() - lastMillis
+            lastMillis = millis()
+//            println("runtime: $runtime; curr sin: ${sinusGenerator.sinus(.0)}")
+
+            // Stimulate the first mass until its in rest position again
+            if (this.stimulateFirstFlag) {
+                // set position of first point
+                this.pointMasses.first().position.y =
+                    100 * this.sinusGenerator.sinus(SIM_STEP) + Constants.DEFAULT_Y
+
+                // terminate
+                if (sinusGenerator.sinus(0.0) <= 0.0) {
+                    this.stimulateFirstFlag = false
+                    this.pointMasses.first().velocity.y = 0.0
+
+                }
+            }
+
+            if (this.lockUpMiddleFlag) {
+                val midIndex = round(this.pointMasses.lastIndex / 2f)
+
+                this.pointMasses[midIndex].position.y = Configuration.INDUCED_AMPLITUDE + Constants.DEFAULT_Y
+                this.pointMasses[midIndex].velocity.y = 0.0
+
+                println("mid y: ${this.pointMasses[midIndex].position.y}")
+                // reduce velocities
+                for (point in pointMasses) {
+                    point.velocity.y *= .99f
+                }
+            }
+
+
+            // start spring timer
+            this.springTimer = millis()
+
+            for (spring in springs) {
+                spring.updatePointVelocities(simTime)
+            }
+
+            for (pointMass in pointMasses) {
+                // only interact if the point is not locked
+                if ((!isFinalPointLocked || pointMass != pointMasses.last()) &&
+                    (!isFirstPointLocked || pointMass != pointMasses.first())
+                ) {
+                    pointMass.updatePosition(simTime)
+                }
+            }
+        }
+
+        // update ui
 
         // reset the background
         background(Constants.bgColor)
-
-        //start stim timer
-        stimTimer = millis()
-
-        runtime = millis() - lastMillis
-        lastMillis = millis()
-        println("runtime: $runtime; curr sin: ${sinusGenerator.sinus(0)}")
-
-        // Stimulate the first mass until its in rest position again
-        if (this.stimulateFirstFlag) {
-            // set position of first point
-            this.pointMasses.first().position.y =
-                100 * this.sinusGenerator.sinus(Configuration.DT_MS.toInt()) + Constants.DEFAULT_Y
-
-            // terminate
-            if (sinusGenerator.sinus(0) <= 0f) {
-                this.stimulateFirstFlag = false
-                this.pointMasses.first().velocity.y = 0f
-
-            }
-        }
-
-        if (this.lockUpMiddleFlag) {
-            val midIndex = round(this.pointMasses.lastIndex / 2f)
-
-            this.pointMasses[midIndex].position.y = Configuration.INDUCED_AMPLITUDE + Constants.DEFAULT_Y
-            this.pointMasses[midIndex].velocity.y = 0f
-
-            println("mid y: ${this.pointMasses[midIndex].position.y}")
-            // reduce velocities
-            for (point in pointMasses) {
-                point.velocity.y *= .99f
-            }
-        }
-
-        val simTime = if (lockUpMiddleFlag)
-            50
-        else
-            (Configuration.DT_MS * Configuration.TIME_FACTOR).toInt()
-
-        // start spring timer
-        this.springTimer = millis()
-
-        for (spring in springs) {
-            spring.updatePointVelocities(simTime)
-        }
+//        println("update ui")
 
         for (pointMass in pointMasses) {
-            // only interact if the point is not locked
-            if ((!isFinalPointLocked || pointMass != pointMasses.last()) &&
-                (!isFirstPointLocked || pointMass != pointMasses.first())
-            ) {
-                pointMass.updatePosition(simTime.toFloat())
-            }
             pointMass.draw(this)
         }
+
 
         // start line timer
         this.lineTimer = millis()
@@ -149,10 +169,10 @@ class Simulatron : PApplet() {
         // draw lines between two connected points
         for (i in 0..<pointMasses.lastIndex) {
             line(
-                pointMasses[i].position.x,
-                -pointMasses[i].position.y + Constants.WINDOW_HEIGHT,
-                pointMasses[i + 1].position.x,
-                -pointMasses[i + 1].position.y + Constants.WINDOW_HEIGHT,
+                pointMasses[i].position.x.toFloat(),
+                (-pointMasses[i].position.y + Constants.WINDOW_HEIGHT).toFloat(),
+                pointMasses[i + 1].position.x.toFloat(),
+                (-pointMasses[i + 1].position.y + Constants.WINDOW_HEIGHT).toFloat(),
 
                 )
         }
@@ -161,6 +181,18 @@ class Simulatron : PApplet() {
         this.lockUpMiddleButton.draw(this)
         this.lockFinalPointButton.draw(this)
         this.lockFirstPointButton.draw(this)
+
+        // calculate energy
+        energy = 0.0
+        for(point in pointMasses) {
+            energy += .5 * point.mass * point.velocity.length().pow(2.0)
+        }
+
+        for(spring in springs) {
+            energy += .5 * spring.springConstant * spring.deltaS().pow(2.0)
+        }
+
+        println("energy2: $energy")
 
         // reset settings
         fill(255F)
@@ -175,7 +207,7 @@ class Simulatron : PApplet() {
 //            pointMasses.first().position.y = Configuration.INDUCED_AMPLITUDE.toDouble()
             this.stimulateFirstFlag = true
             this.stimulateFirstMillis = millis()
-            this.sinusGenerator.timeMs = 0
+            this.sinusGenerator.timeMs = 0.0
         }
 
         if (lockUpMiddleButton.isClicked(mouseX, mouseY)) {
@@ -183,34 +215,34 @@ class Simulatron : PApplet() {
 
             // update color
             if (this.lockUpMiddleFlag)
-                this.lockUpMiddleButton.setColorRgb(255f, 0f, 0f)
+                this.lockUpMiddleButton.setColorRgb(255.0, 0.0, 0.0)
             else
-                this.lockUpMiddleButton.setColorRgb(0f, 255f, 0f)
+                this.lockUpMiddleButton.setColorRgb(0.0, 255.0, 0.0)
         }
 
 
         if (lockFinalPointButton.isClicked(mouseX, mouseY)) {
             isFinalPointLocked = !this.isFinalPointLocked
 
-            pointMasses.last().velocity.y = 0f
+            pointMasses.last().velocity.y = 0.0
 
             if (isFinalPointLocked) {
-                lockFinalPointButton.setColorRgb(255f, 0f, 0f)
+                lockFinalPointButton.setColorRgb(255.0, 0.0, 0.0)
             } else {
-                lockFinalPointButton.setColorRgb(0f, 255f, 0f)
+                lockFinalPointButton.setColorRgb(0.0, 255.0, 0.0)
             }
         }
 
         if (lockFirstPointButton.isClicked(mouseX, mouseY)) {
             isFirstPointLocked = !this.isFirstPointLocked
 
-            pointMasses.first().velocity.y = 0f
+            pointMasses.first().velocity.y = 0.0
 
             // update color
             if (isFirstPointLocked)
-                lockFirstPointButton.setColorRgb(255f, 0f, 0f)
+                lockFirstPointButton.setColorRgb(255.0, 0.0, 0.0)
             else
-                lockFirstPointButton.setColorRgb(0f, 255f, 0f)
+                lockFirstPointButton.setColorRgb(0.0, 255.0, 0.0)
         }
     }
 }

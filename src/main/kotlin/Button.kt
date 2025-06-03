@@ -2,15 +2,15 @@ import processing.core.PApplet
 import kotlin.math.roundToLong
 
 class Button (
-    val size: Vector = Vector(50f, 50f),
-    val position: Vector = Vector(0f, 0f),
+    val size: Vector = Vector(50.0, 50.0),
+    val position: Vector = Vector(0.0, 0.0),
     var text: String = "",
-    var r: Float = 0f,
-    var g: Float = 255f,
-    var b: Float = 0f
+    var r: Double = 0.0,
+    var g: Double = 255.0,
+    var b: Double = 0.0
     ){
     fun draw(scope: PApplet) {
-        scope.fill(this.r, this.g, this.b)
+        scope.fill(this.r.toFloat(), this.g.toFloat(), this.b.toFloat())
         scope.rect(position.x.toFloat(), position.y.toFloat(), size.x.toFloat(), size.y.toFloat())
         // draw text
         scope.fill(0);
@@ -25,7 +25,7 @@ class Button (
             false
     }
 
-    fun setColorRgb(r: Float, g: Float, b: Float) {
+    fun setColorRgb(r: Double, g: Double, b: Double) {
         this.r = r
         this.g = g
         this.b = b

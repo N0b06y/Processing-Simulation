@@ -1,5 +1,5 @@
 data class Color(
-    val red: Float = 0f,
-    val green: Float = 0f,
-    val blue: Float = 0f
+    val red: Double = 0.0,
+    val green: Double = 0.0,
+    val blue: Double = 0.0
 )
